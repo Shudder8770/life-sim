@@ -70,6 +70,7 @@ button, select {
 button:hover { border-color: var(--accent); cursor: pointer; }
 
 .group { display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.5rem; }
+.group p { margin: 0.15rem 0 0.35rem; color: var(--muted); font-size: 0.9rem; }
 .validation { color: var(--danger); font-weight: 600; }
 
 .tabs { display: flex; gap: 0.4rem; }

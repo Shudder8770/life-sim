@@ -1,7 +1,7 @@
 const STARTS = {
-  hard: { cash: 0, stress: 40, note: 'Street Survivor: no support, high resilience.' },
-  medium: { cash: 3500, stress: 20, note: 'Middle Class: essentials mostly covered.' },
-  easy: { cash: 50000, stress: 30, note: 'Rich Kid: trust fund but family pressure.' },
+  hard: { cash: 10, stress: 40, note: 'Street Survivor: no support, high resilience.' },
+  medium: { cash: 500, stress: 20, note: 'Middle Class: essentials mostly covered.' },
+  easy: { cash: 2000, stress: 30, note: 'Rich Kid: trust fund but family pressure.' },
 };
 
 const CAREERS = {
@@ -20,6 +20,9 @@ const state = {
   debt: 0,
   credit: 670,
   career: 'corporate',
+  targetCareer: 'corporate',
+  jobLevel: 1,
+  jobXp: 0,
   performance: 0,
   examPrep: 0,
   businesses: 0,
@@ -74,7 +77,7 @@ function init() {
     option.textContent = value.label;
     careerSelect.append(option);
   });
-  careerSelect.value = state.career;
+  careerSelect.value = state.targetCareer;
 
   bindEvents();
   drawRoutine();
@@ -92,8 +95,12 @@ function bindEvents() {
   });
 
   el('careerSelect').addEventListener('change', (e) => {
-    state.career = e.target.value;
-    log(`Switched track to ${CAREERS[state.career].label}.`);
+    state.targetCareer = e.target.value;
+    render();
+  });
+
+  el('applyCareer').addEventListener('click', () => {
+    applyForCareer(state.targetCareer);
     render();
   });
 
@@ -106,20 +113,17 @@ function bindEvents() {
     state.examPrep += 2;
     state.energy -= 10;
     log('Studied public service exam (+2 prep).');
-    if (state.examPrep >= 10) {
-      state.career = 'government';
-      el('careerSelect').value = 'government';
-      log('Passed the exam and entered government role!', true);
-    }
+    if (state.examPrep >= 10) log('Exam requirement met. You can now apply for a government job!', true);
     render();
   });
 
   el('completeGig').addEventListener('click', () => {
     if (state.career !== 'freelancer') return log('You must be a freelancer to run gigs.');
     if (state.energy < 15) return log('Not enough focus for a gig.');
-    state.cash += 350;
+    state.cash += 350 + (state.jobLevel - 1) * 40;
     state.energy -= 15;
-    log('Completed gig: +$350.');
+    gainJobXp(8);
+    log('Completed gig contract and built your portfolio.');
     render();
   });
 
@@ -129,7 +133,8 @@ function bindEvents() {
     state.performance += 12;
     state.stress += 4;
     state.energy -= 10;
-    log('Overperformed this week (+12 performance, +4 stress).');
+    gainJobXp(6);
+    log('Overperformed this week (+12 reputation, +4 stress).');
     if (state.performance >= 100) {
       state.performance = 0;
       state.cash += 1800;
@@ -140,9 +145,7 @@ function bindEvents() {
 
   el('startBusiness').addEventListener('click', () => buyOnce(100000, () => {
     state.businesses += 1;
-    state.career = 'business';
-    el('careerSelect').value = 'business';
-    log('Launched your first business. Macro phase unlocked!', true);
+    log('Launched your first business. You can now apply as a Business Owner.', true);
   }));
 
   el('hireOps').addEventListener('click', () => buyOnce(5000, () => {
@@ -286,7 +289,10 @@ function simulateDay(routine, isWeekend) {
 
   if (state.burnoutDays >= 21) triggerBurnout();
 
-  if (!isWeekend) applyIncomeAndBills();
+  if (!isWeekend) {
+    applyIncomeAndBills();
+    gainJobXp(2 + Math.floor(growth / 2));
+  }
 
   if (growth >= 3 && state.career === 'corporate') state.performance += 1;
 
@@ -300,10 +306,13 @@ function simulateDay(routine, isWeekend) {
 }
 
 function applyIncomeAndBills() {
-  state.cash += CAREERS[state.career].baseMonthly / 20;
+  const basePay = CAREERS[state.career].baseMonthly / 20;
+  const levelMultiplier = 1 + (state.jobLevel - 1) * 0.18;
+  const dailyPay = basePay * levelMultiplier;
+  state.cash += dailyPay;
   const taxRate = state.cash > 200000 ? 0.35 : state.cash > 50000 ? 0.25 : 0.15;
   const taxCut = state.offshore ? taxRate * 0.4 : taxRate;
-  state.cash -= (CAREERS[state.career].baseMonthly / 20) * taxCut;
+  state.cash -= dailyPay * taxCut;
   if (state.offshore) state.offshoreRisk += 1.2;
 
   const dailyBills = (state.monthlyCosts.rent + state.monthlyCosts.food + state.monthlyCosts.maid + state.monthlyCosts.delivery + state.monthlyCosts.ops + state.utilities) / 30;
@@ -320,6 +329,48 @@ function applyIncomeAndBills() {
   if (state.debt > 0) {
     const rate = state.credit < 580 ? 0.0012 : 0.0006;
     state.debt *= 1 + rate;
+  }
+}
+
+
+function applyForCareer(careerKey) {
+  if (careerKey === state.career) {
+    log(`You already work in ${CAREERS[careerKey].label}.`);
+    return;
+  }
+
+  if (careerKey === 'government' && state.examPrep < 10) {
+    log('Government job requires exam prep of 10. Keep studying.');
+    return;
+  }
+
+  if (careerKey === 'business' && state.businesses < 1) {
+    log('You need to launch a business first.');
+    return;
+  }
+
+  const score = state.performance + state.examPrep * 4 + state.happiness * 0.4 - state.stress * 0.3;
+  const chance = clamp(0.35 + score / 250, 0.25, 0.95);
+
+  if (Math.random() < chance) {
+    state.career = careerKey;
+    state.jobLevel = 1;
+    state.jobXp = 0;
+    log(`Application accepted! You started as ${CAREERS[careerKey].label}.`, true);
+  } else {
+    state.happiness = clamp(state.happiness - 3, 0, 100);
+    log(`Application rejected by ${CAREERS[careerKey].label}. Build skills and try again.`);
+  }
+}
+
+function gainJobXp(amount) {
+  if (CAREERS[state.career].baseMonthly <= 0 && state.career !== 'freelancer') return;
+  state.jobXp += amount;
+  while (state.jobXp >= 100) {
+    state.jobXp -= 100;
+    state.jobLevel += 1;
+    state.cash += 400 * state.jobLevel;
+    log(`Job level up! You reached level ${state.jobLevel} and got a $${(400 * state.jobLevel).toLocaleString()} bonus.`, true);
   }
 }
 
@@ -475,7 +526,7 @@ function render() {
   const weeks = Math.floor(remDays / 7);
   const days = remDays % 7;
 
-  el('identity').textContent = `${state.name} | Age ${ageYears}y ${weeks}w ${days}d | $${Math.floor(state.cash).toLocaleString()} | Credit ${Math.floor(state.credit)} | ${CAREERS[state.career].label}`;
+  el('identity').textContent = `${state.name} | Age ${ageYears}y ${weeks}w ${days}d | $${Math.floor(state.cash).toLocaleString()} | Credit ${Math.floor(state.credit)} | ${CAREERS[state.career].label} Lv.${state.jobLevel}`;
 
   const totalNetWorth = netWorth();
   const status = [
@@ -484,11 +535,21 @@ function render() {
     { label: 'Stress', value: state.stress, text: `${Math.floor(state.stress)}%` },
     { label: 'Energy', value: state.energy, text: `${Math.floor(state.energy)}%` },
     {
+      label: 'Job Progress',
+      value: state.jobXp,
+      text: `${state.jobXp}/100`,
+    },
+    {
       label: 'Net Worth',
       value: clamp((totalNetWorth / 500000) * 100, 0, 100),
       text: `$${Math.floor(totalNetWorth).toLocaleString()}`,
     },
   ];
+
+  const target = CAREERS[state.targetCareer].label;
+  const reqGov = state.examPrep >= 10 ? 'met' : `${state.examPrep}/10 prep`;
+  const reqBiz = state.businesses > 0 ? 'met' : 'launch 1 business';
+  el('jobDetails').textContent = `Current: ${CAREERS[state.career].label} (Lv.${state.jobLevel}) | Target: ${target} | Requirements - Gov: ${reqGov}, Business: ${reqBiz}`;
 
   el('statusBars').innerHTML = status
     .map(({ label, value, text }) => `<div class="stat">${label}<span class="bar"><span class="fill" style="width:${value}%"></span></span>${text}</div>`)
