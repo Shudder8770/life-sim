@@ -1,0 +1,108 @@
+:root {
+  --bg: #0f1222;
+  --panel: #1a1f36;
+  --text: #e9eeff;
+  --muted: #9aa5cc;
+  --accent: #66d1ff;
+  --danger: #ff7b8f;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Inter, system-ui, sans-serif;
+  color: var(--text);
+  background: radial-gradient(circle at top, #1c2450 0%, var(--bg) 55%);
+}
+
+.top-bar,
+.bottom-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.9rem 1.2rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid #2b3260;
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+.bottom-bar { bottom: 0; top: auto; border-top: 1px solid #2b3260; border-bottom: none; }
+
+.grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1.2fr 1fr;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid #2f3765;
+  border-radius: 12px;
+  padding: 0.9rem;
+  min-height: 72vh;
+}
+
+.log {
+  max-height: 72vh;
+  overflow: auto;
+  background: #10152b;
+  border: 1px solid #2f3765;
+  border-radius: 8px;
+  padding: 0.7rem;
+}
+.log p { margin: 0 0 0.6rem; color: var(--muted); }
+.log p.important { color: #ffd284; }
+
+.row { margin: 0.7rem 0; }
+.row label { display: block; font-size: 0.9rem; margin-bottom: 0.2rem; }
+.row input[type='range'] { width: 100%; }
+
+button, select {
+  background: #28305d;
+  color: var(--text);
+  border: 1px solid #3f4888;
+  border-radius: 8px;
+  padding: 0.45rem 0.6rem;
+  margin: 0.2rem;
+}
+button:hover { border-color: var(--accent); cursor: pointer; }
+
+.group { display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.5rem; }
+.validation { color: var(--danger); font-weight: 600; }
+
+.tabs { display: flex; gap: 0.4rem; }
+.tab.active { border-color: var(--accent); color: var(--accent); }
+
+.stat { margin: 0.2rem 0; color: var(--muted); }
+.stat .bar {
+  display: inline-block;
+  width: 90px;
+  height: 10px;
+  border-radius: 8px;
+  background: #0f1429;
+  border: 1px solid #2d3568;
+  margin: 0 0.4rem;
+  position: relative;
+  top: 1px;
+}
+.stat .fill {
+  display: block;
+  height: 100%;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #5de1ff, #8fff9f);
+}
+
+dialog {
+  border: 1px solid #3d4683;
+  border-radius: 10px;
+  background: #101631;
+  color: var(--text);
+  max-width: 420px;
+}
+
+@media (max-width: 1000px) {
+  .grid { grid-template-columns: 1fr; }
+  .panel { min-height: auto; }
+}
