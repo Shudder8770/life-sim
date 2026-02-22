@@ -477,16 +477,21 @@ function render() {
 
   el('identity').textContent = `${state.name} | Age ${ageYears}y ${weeks}w ${days}d | $${Math.floor(state.cash).toLocaleString()} | Credit ${Math.floor(state.credit)} | ${CAREERS[state.career].label}`;
 
+  const totalNetWorth = netWorth();
   const status = [
-    ['Health', state.health],
-    ['Happiness', state.happiness],
-    ['Stress', state.stress],
-    ['Energy', state.energy],
-    ['Net Worth', clamp((netWorth() / 500000) * 100, 0, 100)],
+    { label: 'Health', value: state.health, text: `${Math.floor(state.health)}%` },
+    { label: 'Happiness', value: state.happiness, text: `${Math.floor(state.happiness)}%` },
+    { label: 'Stress', value: state.stress, text: `${Math.floor(state.stress)}%` },
+    { label: 'Energy', value: state.energy, text: `${Math.floor(state.energy)}%` },
+    {
+      label: 'Net Worth',
+      value: clamp((totalNetWorth / 500000) * 100, 0, 100),
+      text: `$${Math.floor(totalNetWorth).toLocaleString()}`,
+    },
   ];
 
   el('statusBars').innerHTML = status
-    .map(([label, value]) => `<div class="stat">${label}<span class="bar"><span class="fill" style="width:${value}%"></span></span>${Math.floor(value)}%</div>`)
+    .map(({ label, value, text }) => `<div class="stat">${label}<span class="bar"><span class="fill" style="width:${value}%"></span></span>${text}</div>`)
     .join('');
 }
 
