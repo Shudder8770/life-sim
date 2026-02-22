@@ -41,6 +41,9 @@ const state = {
   health: 85,
   energy: 100,
   burnoutDays: 0,
+  zeroHealthDays: 0,
+  isDead: false,
+  legacy: null,
   weekday: { chores: 4, sleep: 8, core: 8, growth: 2, leisure: 2 },
   weekend: { chores: 4, sleep: 8, core: 2, growth: 4, leisure: 6 },
   history: [],
@@ -107,6 +110,7 @@ function bindEvents() {
   el('advanceDay').addEventListener('click', () => advanceDays(1));
   el('advanceWeek').addEventListener('click', () => advanceDays(7));
   el('resetGame').addEventListener('click', () => window.location.reload());
+  el('nextGenerationBtn').addEventListener('click', startNextGeneration);
 
   el('studyExam').addEventListener('click', () => {
     if (state.energy < 10) return log('Too tired to study for the exam.');
@@ -256,6 +260,7 @@ function validateRoutine() {
 }
 
 function advanceDays(days) {
+  if (state.isDead) return;
   if (!validateRoutine()) return log('Fix weekday/weekend sliders before advancing time.');
   currentRoutine = 'weekend';
   const weekendOk = validateRoutine();
@@ -265,6 +270,7 @@ function advanceDays(days) {
   for (let i = 0; i < days; i += 1) {
     const isWeekend = [5, 6].includes((state.ageDays + i) % 7);
     simulateDay(isWeekend ? state.weekend : state.weekday, isWeekend);
+    if (checkDeath()) break;
     maybeEvent();
   }
   render();
@@ -471,6 +477,87 @@ function triggerBurnout() {
   state.energy = clamp(state.energy - 50, 0, 100);
   state.cash -= 6000;
   log('HEALTH CRISIS! Burnout caused medical bills and severe fatigue.', true);
+}
+
+function checkDeath() {
+  if (state.isDead) return true;
+
+  state.zeroHealthDays = state.health === 0 ? state.zeroHealthDays + 1 : 0;
+  if (state.zeroHealthDays >= 3) {
+    triggerDeath('Your body gave out after prolonged critical health.');
+    return true;
+  }
+
+  const ageYears = state.ageDays / 365;
+  if (ageYears > 80) {
+    const yearsPast80 = ageYears - 80;
+    const deathChance = Math.min(0.3, 0.0025 + yearsPast80 * 0.0045);
+    if (Math.random() < deathChance) {
+      triggerDeath('You passed away peacefully due to old age.');
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function triggerDeath(reason = 'Your life has come to an end.') {
+  state.isDead = true;
+
+  const stockValue = state.stocks.tech * state.stockPrices.tech + state.stocks.pharma * state.stockPrices.pharma;
+  const realEstateValue = state.realEstate * 80000;
+  const totalNetWorth = state.cash + state.savings + stockValue + realEstateValue;
+  const ageAtDeathYears = Math.floor(state.ageDays / 365);
+
+  state.legacy = {
+    ageAtDeathYears,
+    totalNetWorth,
+    peakCareerLevel: state.jobLevel,
+    inheritedCash: totalNetWorth * 0.5,
+  };
+
+  el('legacySummary').innerHTML = `
+    <p>${reason}</p>
+    <p><strong>Age at Death:</strong> ${ageAtDeathYears} years</p>
+    <p><strong>Total Net Worth:</strong> $${Math.floor(totalNetWorth).toLocaleString()}</p>
+    <p><strong>Peak Career Level:</strong> Level ${state.legacy.peakCareerLevel}</p>
+  `;
+
+  el('legacyModal').showModal();
+  log(`GAME OVER. ${reason}`, true);
+}
+
+function startNextGeneration() {
+  if (!state.legacy) return;
+
+  const inheritance = state.legacy.inheritedCash;
+
+  state.ageDays = 18 * 365;
+  state.health = 100;
+  state.energy = 100;
+  state.stress = 0;
+  state.zeroHealthDays = 0;
+  state.isDead = false;
+
+  state.career = 'corporate';
+  state.targetCareer = 'corporate';
+  state.jobLevel = 1;
+  state.jobXp = 0;
+  state.performance = 0;
+  state.examPrep = 0;
+  state.businesses = 0;
+  state.opsManager = false;
+
+  state.cash = inheritance;
+  state.savings = 0;
+  state.stocks = { tech: 0, pharma: 0 };
+  state.realEstate = 0;
+
+  state.legacy = null;
+
+  el('legacyModal').close();
+  log(`A new generation begins. You inherited $${Math.floor(inheritance).toLocaleString()} from your parent.`, true);
+  render();
 }
 
 function buyOnce(cost, onSuccess) {
