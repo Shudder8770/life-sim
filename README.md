@@ -2,7 +2,7 @@
 
 A browser-based life + resource management simulator inspired by the provided GDD.
 
-## Run
+## Run locally
 
 Open `index.html` directly, or serve with:
 
@@ -11,6 +11,21 @@ python3 -m http.server 4173
 ```
 
 Then visit `http://localhost:4173`.
+
+## GitHub Pages hosting
+
+This repo includes a GitHub Actions workflow that deploys the site to GitHub Pages whenever you push to `main`.
+
+1. Push your changes to the `main` branch.
+2. In GitHub, go to **Settings → Pages**.
+3. Under **Build and deployment**, set **Source** to **GitHub Actions**.
+4. Wait for the **Deploy static site to GitHub Pages** workflow to finish.
+
+Your game will be available at:
+
+```text
+https://<your-github-username>.github.io/<your-repo-name>/
+```
 
 ## Implemented systems
 
@@ -23,4 +38,3 @@ Then visit `http://localhost:4173`.
 - Economy: taxes, debt, credit score, autopay, offshore risk/audits.
 - Investments: savings, sector stocks with volatility/dividends, real estate rent.
 - Automation lifestyle options (car, maid, meal delivery, ops manager).
-
