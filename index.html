@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LifeFlow - From Micro to Macro</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="top-bar">
+      <div id="identity"></div>
+      <div class="bars" id="statusBars"></div>
+    </header>
+
+    <main class="grid">
+      <section class="panel log-panel">
+        <h2>Life Log & Events</h2>
+        <div id="eventLog" class="log"></div>
+      </section>
+
+      <section class="panel center-panel">
+        <h2>Time Management</h2>
+        <div class="tabs">
+          <button class="tab active" data-routine="weekday">Weekday</button>
+          <button class="tab" data-routine="weekend">Weekend</button>
+        </div>
+        <div id="routineControls"></div>
+        <p id="timeValidation" class="validation"></p>
+      </section>
+
+      <section class="panel actions-panel">
+        <h2>Actions</h2>
+
+        <details open>
+          <summary>Career</summary>
+          <div class="group">
+            <label for="careerSelect">Track</label>
+            <select id="careerSelect"></select>
+            <button id="studyExam">Study Government Exam (2 focus)</button>
+            <button id="completeGig">Complete Freelancer Gig (3 focus)</button>
+            <button id="pushPerformance">Push Corporate Performance (2 focus)</button>
+            <button id="startBusiness">Launch Business ($100,000)</button>
+            <button id="hireOps">Hire HR & Ops Manager ($5,000/mo)</button>
+          </div>
+        </details>
+
+        <details>
+          <summary>Bank & Investments</summary>
+          <div class="group">
+            <button id="toggleAutopay">Toggle Bill Autopay</button>
+            <button id="buyTech">Buy Tech Stock ($500)</button>
+            <button id="buyPharma">Buy Pharma Stock ($500)</button>
+            <button id="buySavings">Move $1,000 to Savings</button>
+            <button id="buyProperty">Buy Rental Property ($80,000)</button>
+            <button id="offshore">Enable Offshore Evasion</button>
+          </div>
+        </details>
+
+        <details>
+          <summary>Lifestyle & Automation</summary>
+          <div class="group">
+            <button id="buyCar">Buy Car ($12,000)</button>
+            <button id="hireMaid">Hire Maid ($600/mo)</button>
+            <button id="orderFood">Enable Meal Delivery ($300/mo)</button>
+          </div>
+        </details>
+      </section>
+    </main>
+
+    <footer class="bottom-bar">
+      <button id="advanceDay">Advance 1 Day</button>
+      <button id="advanceWeek">Advance 1 Week</button>
+      <button id="resetGame">New Run</button>
+    </footer>
+
+    <dialog id="eventModal">
+      <form method="dialog">
+        <h3 id="modalTitle"></h3>
+        <p id="modalText"></p>
+        <menu id="modalChoices"></menu>
+      </form>
+    </dialog>
+
+    <script src="script.js"></script>
+  </body>
+</html>
