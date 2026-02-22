@@ -21,6 +21,8 @@ This repo includes a GitHub Actions workflow that deploys the site to GitHub Pag
 
 > The workflow uses `actions/configure-pages` with `enablement: true`, so it can enable GitHub Pages automatically for the repository.
 
+> Note: Pull request branches are validated but not deployed. GitHub Pages deployments are published from `main` only, so seeing “This branch has not been deployed” on a PR is expected.
+
 Your game will be available at:
 
 ```text
